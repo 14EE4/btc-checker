@@ -86,3 +86,6 @@ function showError(message) {
 
 // 버튼 클릭 이벤트 리스너
 checkBtn.addEventListener('click', checkWallet);
+
+// 페이지 로드 시 자동으로 조회
+document.addEventListener('DOMContentLoaded', checkWallet);
