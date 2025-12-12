@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비트코인 지갑 조회기</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #f7931a; /* 비트코인 오렌지색 */
+            --secondary-text: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: var(--card-color);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+            color: var(--text-color);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--accent-color);
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--accent-color);
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #e0820a;
+        }
+
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        #loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--accent-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #resultsArea {
+            display: none; /* 초기엔 숨김 */
+            text-align: left;
+            margin-top: 20px;
+            border-top: 1px solid #333;
+            padding-top: 20px;
+        }
+
+        .result-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #252525;
+            border-radius: 10px;
+        }
+
+        .label {
+            font-size: 0.9rem;
+            color: var(--secondary-text);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .value.highlight {
+            color: var(--accent-color);
+            font-size: 1.5rem;
+        }
+
+        .sub-value {
+            font-size: 0.9rem;
+            color: var(--secondary-text);
+        }
+
+        #errorMessage {
+            color: #ff6b6b;
+            background-color: rgba(255, 107, 107, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none; /* 초기엔 숨김 */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Bitcoin Wallet Checker</h1>
+    <p style="color: var(--secondary-text); margin-bottom: 20px;">비트코인 주소를 입력하여 잔액과 가치를 확인하세요.</p>
+    
+    <div class="input-group">
+        <input type="text" id="addressInput" placeholder="bc1q... 또는 1A1z... 주소 입력" value="bc1qkhmnqek2n33nd6rmylj08xnyp9z92taamjtnqw">
+        <button id="checkBtn">조회</button>
+    </div>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>블록체인 데이터 조회 중...</p>
+    </div>
+
+    <div id="errorMessage"></div>
+
+    <div id="resultsArea">
+        <div class="result-item">
+             <span class="label">보유 비트코인</span>
+             <div class="value" id="btcBalance">0 BTC</div>
+             <div class="sub-value" id="satsBalance">0 sats</div>
+        </div>
+
+        <div class="result-item">
+            <span class="label">현재 시세 (1 BTC 당)</span>
+            <div>🇺🇸 <span id="priceUSD">0</span></div>
+            <div>🇰🇷 <span id="priceKRW">0</span></div>
+        </div>
+
+        <div class="result-item" style="background-color: #2a2a2a; border: 1px solid var(--accent-color);">
+            <span class="label" style="color: var(--accent-color);">총 자산 가치 (예상)</span>
+            <div class="value highlight">🇰🇷 <span id="totalKRW">0</span> 원</div>
+            <div class="sub-value">🇺🇸 <span id="totalUSD">0</span> 달러</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const addressInput = document.getElementById('addressInput');
+    const checkBtn = document.getElementById('checkBtn');
+    const loadingDiv = document.getElementById('loading');
+    const resultsArea = document.getElementById('resultsArea');
+    const errorDiv = document.getElementById('errorMessage');
+
+    // 숫자 포맷팅 함수 (콤마 찍기)
+    function formatNumber(num, maximumFractionDigits = 0) {
+        return num.toLocaleString(undefined, { maximumFractionDigits });
+    }
+
+    async function checkWallet() {
+        const address = addressInput.value.trim();
+
+        if (!address) {
+            showError("주소를 입력해주세요.");
+            return;
+        }
+
+        // UI 초기화 상태로 설정
+        loadingDiv.style.display = 'block';
+        resultsArea.style.display = 'none';
+        errorDiv.style.display = 'none';
+        checkBtn.disabled = true;
+
+        try {
+            // API URL 설정
+            const balanceUrl = `https://mempool.space/api/address/${address}`;
+            const priceUrl = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,krw";
+
+            // 두 API 동시에 호출
+            const [balanceRes, priceRes] = await Promise.all([
+                fetch(balanceUrl),
+                fetch(priceUrl)
+            ]);
+
+            // 에러 체크
+            if (!balanceRes.ok) {
+                if(balanceRes.status === 400) throw new Error("잘못된 주소 형식입니다.");
+                throw new Error("지갑 정보를 찾을 수 없습니다. 주소를 확인해주세요.");
+            }
+            if (!priceRes.ok) {
+                 // 코인게코 무료 API는 요청 제한이 걸릴 수 있음
+                throw new Error("시세 정보를 가져오는데 실패했습니다. (잠시 후 다시 시도해주세요)");
+            }
+
+            const balanceData = await balanceRes.json();
+            const priceData = await priceRes.json();
+
+            // --- 데이터 계산 ---
+            // 확정된 잔액만 계산 (받은거 - 보낸거)
+            const chainStats = balanceData.chain_stats;
+            const sats = chainStats.funded_txo_sum - chainStats.spent_txo_sum;
+            const btc = sats / 100_000_000;
+
+            // 시세 정보
+            const rateUSD = priceData.bitcoin.usd;
+            const rateKRW = priceData.bitcoin.krw;
+
+            // 가치 계산
+            const totalUSD = btc * rateUSD;
+            const totalKRW = btc * rateKRW;
+
+            // --- UI 업데이트 ---
+            document.getElementById('btcBalance').textContent = `${btc} BTC`;
+            document.getElementById('satsBalance').textContent = `${formatNumber(sats)} sats`;
+
+            document.getElementById('priceUSD').textContent = `$${formatNumber(rateUSD, 2)}`;
+            document.getElementById('priceKRW').textContent = `₩${formatNumber(rateKRW)}`;
+
+            document.getElementById('totalUSD').textContent = `$${formatNumber(totalUSD, 2)}`;
+            document.getElementById('totalKRW').textContent = `${formatNumber(totalKRW)}`;
+
+            // 결과창 표시
+            resultsArea.style.display = 'block';
+
+        } catch (error) {
+            showError(error.message);
+        } finally {
+            // 로딩 종료 상태로 복구
+            loadingDiv.style.display = 'none';
+            checkBtn.disabled = false;
+        }
+    }
+
+    function showError(message) {
+        errorDiv.textContent = `❌ 오류: ${message}`;
+        errorDiv.style.display = 'block';
+    }
+
+    // 버튼 클릭 이벤트 리스너
+    checkBtn.addEventListener('click', checkWallet);
+
+    // 엔터키 입력 시 조회
+    addressInput.addEventListener('keypress', function(e) {
+        if(e.key === 'Enter') checkWallet();
+    });
+
+</script>
+
+</body>
+</html>
