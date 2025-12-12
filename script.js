@@ -58,6 +58,9 @@ async function checkWallet() {
         const totalKRW = btc * rateKRW;
 
         // --- UI 업데이트 ---
+        // QR 코드 이미지 설정 (로컬 파일 사용)
+        document.getElementById('qrCode').src = 'bitcoin_qr_8x.png';
+
         document.getElementById('btcBalance').textContent = `${btc} BTC`;
         document.getElementById('satsBalance').textContent = `${formatNumber(sats)} sats`;
 
