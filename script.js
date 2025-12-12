@@ -1,4 +1,4 @@
-const addressInput = document.getElementById('addressInput');
+const WALLET_ADDRESS = 'bc1qkhmnqek2n33nd6rmylj08xnyp9z92taamjtnqw';
 const checkBtn = document.getElementById('checkBtn');
 const loadingDiv = document.getElementById('loading');
 const resultsArea = document.getElementById('resultsArea');
@@ -10,12 +10,8 @@ function formatNumber(num, maximumFractionDigits = 0) {
 }
 
 async function checkWallet() {
-    const address = addressInput.value.trim();
+    const address = WALLET_ADDRESS;
 
-    if (!address) {
-        showError("주소를 입력해주세요.");
-        return;
-    }
 
     // UI 초기화 상태로 설정
     loadingDiv.style.display = 'block';
@@ -90,8 +86,3 @@ function showError(message) {
 
 // 버튼 클릭 이벤트 리스너
 checkBtn.addEventListener('click', checkWallet);
-
-// 엔터키 입력 시 조회
-addressInput.addEventListener('keypress', function(e) {
-    if(e.key === 'Enter') checkWallet();
-});
