@@ -27,8 +27,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
-  if (url.origin !== location.origin) return; // Let network handle cross-origin
+  
+  // 외부 API는 네트워크 우선으로 (캐싱 하지 않음)
+  if (url.origin !== location.origin) {
+    event.respondWith(fetch(event.request).catch(() => null));
+    return;
+  }
 
+  // 로컬 자산은 캐시 우선
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const networkFetch = fetch(event.request)
