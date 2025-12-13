@@ -17,7 +17,7 @@
       "name": "BTC 위젯",
       "short_name": "위젯",
       "description": "빠르게 BTC 잔액과 시세 확인",
-      "url": "/widget.html",
+      "url": "widget.html",
       "icons": [ { "src": "icons/icon-192.png", "sizes": "192x192" } ]
     }
   ]
