@@ -13,11 +13,11 @@ async function checkWallet() {
     const address = WALLET_ADDRESS;
 
 
-    // UI 초기화 상태로 설정
-    loadingDiv.style.display = 'block';
-    resultsArea.style.display = 'none';
-    errorDiv.style.display = 'none';
-    checkBtn.disabled = true;
+    // UI 초기화 상태로 설정 (존재할 때만 적용)
+    if (loadingDiv) loadingDiv.style.display = 'block';
+    if (resultsArea) resultsArea.style.display = 'none';
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (checkBtn) checkBtn.disabled = true;
 
     try {
         // API URL 설정
@@ -61,34 +61,41 @@ async function checkWallet() {
         // QR 코드 이미지 설정 (로컬 파일 사용)
         document.getElementById('qrCode').src = 'bitcoin_qr_8x.png';
 
-        document.getElementById('btcBalance').textContent = `${btc} BTC`;
-        document.getElementById('satsBalance').textContent = `${formatNumber(sats)} sats`;
+        const btcEl = document.getElementById('btcBalance');
+        if (btcEl) btcEl.textContent = `${btc} BTC`;
+        const satsEl = document.getElementById('satsBalance');
+        if (satsEl) satsEl.textContent = `${formatNumber(sats)} sats`;
 
-        document.getElementById('priceUSD').textContent = `$${formatNumber(rateUSD, 2)}`;
-        document.getElementById('priceKRW').textContent = `₩${formatNumber(rateKRW)}`;
+        const usdEl = document.getElementById('priceUSD');
+        if (usdEl) usdEl.textContent = `$${formatNumber(rateUSD, 2)}`;
+        const krwEl = document.getElementById('priceKRW');
+        if (krwEl) krwEl.textContent = `₩${formatNumber(rateKRW)}`;
 
-        document.getElementById('totalUSD').textContent = `$${formatNumber(totalUSD, 2)}`;
-        document.getElementById('totalKRW').textContent = `${formatNumber(totalKRW)}`;
+        const totalUsdEl = document.getElementById('totalUSD');
+        if (totalUsdEl) totalUsdEl.textContent = `$${formatNumber(totalUSD, 2)}`;
+        const totalKrwEl = document.getElementById('totalKRW');
+        if (totalKrwEl) totalKrwEl.textContent = `${formatNumber(totalKRW)}`;
 
-        // 결과창 표시
-        resultsArea.style.display = 'block';
+        // 결과창 표시 (존재할 때만)
+        if (resultsArea) resultsArea.style.display = 'block';
 
     } catch (error) {
         showError(error.message);
     } finally {
         // 로딩 종료 상태로 복구
-        loadingDiv.style.display = 'none';
-        checkBtn.disabled = false;
+            if (loadingDiv) loadingDiv.style.display = 'none';
+            if (checkBtn) checkBtn.disabled = false;
     }
 }
 
 function showError(message) {
+    if (!errorDiv) return;
     errorDiv.textContent = `❌ 오류: ${message}`;
     errorDiv.style.display = 'block';
 }
 
-// 버튼 클릭 이벤트 리스너
-checkBtn.addEventListener('click', checkWallet);
+// 버튼 클릭 이벤트 리스너 (존재할 때만)
+if (checkBtn) checkBtn.addEventListener('click', checkWallet);
 
 // 페이지 로드 시 자동으로 조회
 document.addEventListener('DOMContentLoaded', checkWallet);
