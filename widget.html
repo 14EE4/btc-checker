@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BTC 위젯</title>
+  <meta name="theme-color" content="#f7931a">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root {
+      --bg-color: #121212;
+      --card-color: #1e1e1e;
+      --text-color: #e0e0e0;
+      --accent-color: #f7931a;
+      --secondary-text: #a0a0a0;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+    }
+    .widget {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      background: var(--card-color);
+      border-radius: 12px;
+    }
+    .widget img { width: 80px; height: 80px; border-radius: 8px; }
+    .title { font-size: 0.85rem; color: var(--secondary-text); }
+    .value { font-size: 1.1rem; font-weight: bold; }
+    .sub { font-size: 0.8rem; color: var(--secondary-text); }
+  </style>
+</head>
+<body>
+  <div class="widget">
+    <img id="qrCode" alt="QR" src="bitcoin_qr_8x.png" />
+    <div>
+      <div class="title">BTC 보유 / 시세</div>
+      <div class="value"><span id="btcBalance">-</span> · <span id="priceKRW">-</span></div>
+      <div class="sub">총 가치: <span id="totalKRW">-</span>원</div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

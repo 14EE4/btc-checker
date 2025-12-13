@@ -2,6 +2,7 @@ const CACHE_NAME = 'btc-checker-v1';
 const CORE_ASSETS = [
   '/',
   '/index.html',
+  '/widget.html',
   '/script.js',
   '/bitcoin_qr_8x.png',
   '/manifest.json'

@@ -7,8 +7,18 @@
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#f7931a",
+  "display_override": ["standalone", "minimal-ui"],
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "BTC 위젯",
+      "short_name": "위젯",
+      "description": "빠르게 BTC 잔액과 시세 확인",
+      "url": "/widget.html",
+      "icons": [ { "src": "icons/icon-192.png", "sizes": "192x192" } ]
+    }
   ]
 }
