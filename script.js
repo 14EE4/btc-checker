@@ -11,7 +11,7 @@ function formatNumber(num, maximumFractionDigits = 0) {
 
 async function checkWallet() {
     const address = WALLET_ADDRESS;
-
+    console.log('checkWallet 시작:', address);
 
     // UI 초기화 상태로 설정 (존재할 때만 적용)
     if (loadingDiv) loadingDiv.style.display = 'block';
@@ -20,6 +20,7 @@ async function checkWallet() {
     if (checkBtn) checkBtn.disabled = true;
 
     try {
+        console.log('API 호출 시작...');
         // API URL 설정
         const balanceUrl = `https://mempool.space/api/address/${address}`;
         const priceUrl = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,krw";
@@ -42,8 +43,7 @@ async function checkWallet() {
 
         const balanceData = await balanceRes.json();
         const priceData = await priceRes.json();
-
-        // --- 데이터 계산 ---
+            console.log('API 응답 수신:', { balanceData, priceData });
         // 확정된 잔액만 계산 (받은거 - 보낸거)
         const chainStats = balanceData.chain_stats;
         const sats = chainStats.funded_txo_sum - chainStats.spent_txo_sum;
@@ -80,6 +80,7 @@ async function checkWallet() {
         if (resultsArea) resultsArea.style.display = 'block';
 
     } catch (error) {
+        console.error('에러 발생:', error);
         showError(error.message);
     } finally {
         // 로딩 종료 상태로 복구
@@ -98,7 +99,10 @@ function showError(message) {
 if (checkBtn) checkBtn.addEventListener('click', checkWallet);
 
 // 페이지 로드 시 자동으로 조회
-document.addEventListener('DOMContentLoaded', checkWallet);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded 이벤트 발생');
+    checkWallet();
+});
 
 // 서비스 워커 등록 (PWA)
 if ('serviceWorker' in navigator) {
