@@ -1,4 +1,4 @@
-const WALLET_ADDRESS = 'bc1qkhmnqek2n33nd6rmylj08xnyp9z92taamjtnqw';
+const WALLET_ADDRESS = 'bc1quy2ld2rrudtt098h9vkp9s2a6hrpfx6rlvkm8z';
 const checkBtn = document.getElementById('checkBtn');
 const loadingDiv = document.getElementById('loading');
 const resultsArea = document.getElementById('resultsArea');
