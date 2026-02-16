@@ -1,4 +1,8 @@
-const WALLET_ADDRESS = 'bc1quy2ld2rrudtt098h9vkp9s2a6hrpfx6rlvkm8z';
+const WALLET_ADDRESSES = [
+    'bc1quy2ld2rrudtt098h9vkp9s2a6hrpfx6rlvkm8z',
+    'bc1qkhmnqek2n33nd6rmylj08xnyp9z92taamjtnqw',
+    'bc1q9dkww5c4tzhukdjl2m44kajzvr6p0pfhcz5pdr'
+];
 const checkBtn = document.getElementById('checkBtn');
 const loadingDiv = document.getElementById('loading');
 const resultsArea = document.getElementById('resultsArea');
@@ -10,8 +14,13 @@ function formatNumber(num, maximumFractionDigits = 0) {
 }
 
 async function checkWallet() {
-    const address = WALLET_ADDRESS;
-    console.log('checkWallet 시작:', address);
+    const addresses = WALLET_ADDRESSES.filter(Boolean);
+    console.log('checkWallet 시작:', addresses);
+
+    if (addresses.length === 0) {
+        showError('지갑 주소가 비어 있습니다. WALLET_ADDRESSES를 확인해주세요.');
+        return;
+    }
 
     // UI 초기화 상태로 설정 (존재할 때만 적용)
     if (loadingDiv) loadingDiv.style.display = 'block';
@@ -21,32 +30,37 @@ async function checkWallet() {
 
     try {
         console.log('API 호출 시작...');
-        // API URL 설정
-        const balanceUrl = `https://mempool.space/api/address/${address}`;
         const priceUrl = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,krw";
 
-        // 두 API 동시에 호출
-        const [balanceRes, priceRes] = await Promise.all([
-            fetch(balanceUrl),
+        const balanceRequests = addresses.map((address) =>
+            fetch(`https://mempool.space/api/address/${address}`).then((res) => ({ address, res }))
+        );
+
+        const [balanceResults, priceRes] = await Promise.all([
+            Promise.all(balanceRequests),
             fetch(priceUrl)
         ]);
 
-        // 에러 체크
-        if (!balanceRes.ok) {
-            if(balanceRes.status === 400) throw new Error("잘못된 주소 형식입니다.");
-            throw new Error("지갑 정보를 찾을 수 없습니다. 주소를 확인해주세요.");
-        }
         if (!priceRes.ok) {
             // 코인게코 무료 API는 요청 제한이 걸릴 수 있음
             throw new Error("시세 정보를 가져오는데 실패했습니다. (잠시 후 다시 시도해주세요)");
         }
 
-        const balanceData = await balanceRes.json();
+        let sats = 0;
+        for (const { address, res } of balanceResults) {
+            if (!res.ok) {
+                if (res.status === 400) throw new Error(`잘못된 주소 형식입니다: ${address}`);
+                throw new Error(`지갑 정보를 찾을 수 없습니다: ${address}`);
+            }
+
+            const balanceData = await res.json();
+            const chainStats = balanceData.chain_stats;
+            sats += chainStats.funded_txo_sum - chainStats.spent_txo_sum;
+        }
+
         const priceData = await priceRes.json();
-            console.log('API 응답 수신:', { balanceData, priceData });
-        // 확정된 잔액만 계산 (받은거 - 보낸거)
-        const chainStats = balanceData.chain_stats;
-        const sats = chainStats.funded_txo_sum - chainStats.spent_txo_sum;
+        console.log('API 응답 수신:', { priceData, addressCount: addresses.length });
+
         const btc = sats / 100_000_000;
 
         // 시세 정보
